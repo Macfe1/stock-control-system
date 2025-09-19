@@ -7,6 +7,7 @@ Incluye autenticación simulada en el frontend con roles (public, operator, admi
 Las operaciones de CRUD ya están disponibles en el backend, pero no todas quedaron conectadas a la UI. Quedaron listas para ser invocadas desde los services del frontend o directamente vía GraphQL. Detalles abajo.
 
 ### Preview
+
 ![](assets/images/preview.png)
 
 
