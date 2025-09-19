@@ -10,6 +10,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   hasura:
     image: hasura/graphql-engine:v2.25.1
@@ -24,6 +25,9 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "public"
       HASURA_GRAPHQL_CORS_DOMAIN: "http://localhost:4200"
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      HASURA_GRAPHQL_METADATA_DIR: /hasura-metadata
+    volumes:
+      - ./metadata:/hasura-metadata 
 
 volumes:
   pgdata:

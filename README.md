@@ -113,8 +113,6 @@ inventory-backoffice/
 
 - Docker y Docker Compose
 
-- Node.js 20+ y npm
-
 - (Opcional) Hasura CLI si vas a exportar/importar metadata
 
 
@@ -150,5 +148,93 @@ Rutas protegidas (src/app/app.routes.ts):
 
 - Tab “Inventario”: lectura conectada. Acciones directas desaconsejadas (modal).
 
+
+## 🧩 Levantar el backend (Hasura + PostgreSQL)
+
+Este proyecto usa Hasura + PostgreSQL en Docker. Incluye la metadata y un archivo init.sql para crear las tablas necesarias automáticamente.
+
+### ⚙️ Requisitos previos
+
+Tener Docker y Docker Compose instalados
+
+### 🚀 Pasos para levantar el backend
+
+```bash
+# 1. Clona el repositorio
+git clone https://github.com/usuario/stock-control-system.git
+cd stock-control-system/backend
+
+# 2. Crea el archivo de variables de entorno
+cp .env.example .env
+# (Rellena las variables si es necesario)
+
+# 3. Levanta los servicios
+docker compose up -d
+```
+
+Esto levantará:
+
+- PostgreSQL en el puerto que definas en .env
+
+- Hasura en http://localhost:8081
+ (o el puerto que hayas puesto)
+
+### 📦 ¿Qué incluye este backend?
+
+- metadata/ → configuración de Hasura exportada
+
+- migrations/init.sql → script SQL que crea las tablas: products, inventory, stock_movements, users, warehouses
+
+- docker-compose.yml → configura todo para que funcione automáticamente
+
+### ⚠️ Notas importantes
+
+El archivo init.sql solo se ejecuta automáticamente la primera vez que levantas la base de datos. Si ya tienes datos, no se borra nada.
+
+Si necesitas reiniciar desde cero, puedes correr:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+## 🌐 Levantar el frontend (Angular + Apollo + Tailwind)
+
+Este proyecto usa Angular para el frontend, junto con Apollo Client para consumir la API de Hasura y TailwindCSS para los estilos.
+
+### ⚙️ Requisitos
+
+Para ejecutar el frontend necesitas tener instalados:
+
+- Node.js (versión 14 o superior)
+
+- npm (viene con Node.js)
+
+- Angular CLI: Puedes instalar Angular CLI globalmente con el siguiente comando:
+
+ ```bash
+ npm install -g @angular/cli
+ ```
+
+### 🚀 Pasos para ejecutar el frontend
+
+```bash
+# 1. Ir a la carpeta del frontend
+cd stock-control-system/frontend
+
+# 2. Instalar las dependencias
+npm install
+
+# 3. Correr el servidor de desarrollo
+npm start
+```
+
+Esto abrirá tu frontend en http://localhost:4200
+
+### ⚠️ Notas
+
+El frontend se conecta automáticamente a Hasura usando Apollo Client
+
+Asegúrate de que el backend esté corriendo primero (Hasura debe estar activo)
 
 
