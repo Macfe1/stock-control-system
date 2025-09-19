@@ -1,0 +1,14 @@
+:host { display: block; }
+.input {
+width: 100%;
+    border: 1px solid #e5e7eb;           /* stone-200 */
+    border-radius: 0.5rem;                /* rounded-lg */
+    padding: 0.5rem 0.75rem;              /* px-3 py-2 */
+    outline: none;
+    background: #fff;
+}
+.input:focus {
+    border-color: #ef4444;                /* red-500 */
+    box-shadow: 0 0 0 3px rgba(239,68,68,.15);
+}
+.radio input { margin-right: .4rem; }

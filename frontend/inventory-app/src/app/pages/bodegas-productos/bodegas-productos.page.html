@@ -1,0 +1,172 @@
+<div class="mx-auto max-w-6xl">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-xl overflow-hidden bg-stone-100 grid place-items-center shrink-0">
+        <span class="text-2xl">🧭</span>
+      </div>
+      <div>
+        <h1 class="text-3xl font-semibold text-red-600 leading-tight">
+          Bodegas &amp; <br class="sm:hidden"> Productos
+        </h1>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div class="relative hidden md:block">
+        <input class="search" placeholder="Buscar…" />
+        <span class="search-icon">🔍</span>
+      </div>
+      <button type="button" class="btn outline">Filtro</button>
+      <button type="button"
+              class="btn primary"
+              [class.disabled]="active()==='inventario' && !isAdmin()"
+              (click)="onPrimary()">
+        {{ primaryLabel() }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="active()==='bodegas'" (click)="onTab('bodegas')">Bodegas</button>
+    <button class="tab" [class.active]="active()==='productos'" (click)="onTab('productos')">Productos</button>
+    <button class="tab" [class.active]="active()==='inventario'" [class.disabled]="!canSeeInventory()" (click)="onTab('inventario')">
+      Inventario <span *ngIf="!canSeeInventory()" class="ml-1">🔒</span>
+    </button>
+  </div>
+
+  <!-- Card contenedor -->
+  <div class="card">
+    <!-- ======= TAB: BODEGAS ======= -->
+    <table *ngIf="active()==='bodegas'">
+      <thead>
+        <tr>
+          <th class="w-10"><input type="checkbox" /></th>
+          <th>Nombre</th>
+          <th>Código</th>
+          <th>Dirección</th>
+          <th>Estatus</th>
+          <th class="w-10"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of bodegasVM(); let i=index">
+          <td><input type="checkbox" /></td>
+          <td>{{ r.nombre }}</td>
+          <td>{{ r.codigo }}</td>
+          <td>{{ r.direccion }}</td>
+          <td>
+            <span class="chip" [class.chip-green]="r.estado==='Activo'" [class.chip-red]="r.estado!=='Activo'">
+              {{ r.estado }}
+            </span>
+          </td>
+          <td class="rel">
+            <button class="dots" type="button"
+                    [class.disabled]="!isAdmin()"
+                    (click)="isAdmin() && toggleRowMenu(i)">⋯</button>
+            <div class="menu" *ngIf="openMenuIndex()===i && isAdmin()">
+              <button type="button" (click)="editWarehouse(i)">Editar</button>
+              <button type="button" (click)="askWarehouseDeactivate(i)">Desactivar</button>
+              <button type="button" (click)="askWarehouseDelete(i)">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ======= TAB: PRODUCTOS ======= -->
+    <table *ngIf="active()==='productos'">
+      <thead>
+        <tr>
+          <th class="w-10"><input type="checkbox" /></th>
+          <th>Nombre</th>
+          <th>SKU</th>
+          <th>Descripción</th>
+          <th>Unidad</th>
+          <th>Precio</th>
+          <th class="w-10"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of productosVM(); let i=index">
+          <td><input type="checkbox" /></td>
+          <td class="cell-with-img">
+            <span class="avatar"></span>
+            <span class="truncate">{{ r.nombre }}</span>
+          </td>
+          <td>{{ r.sku }}</td>
+          <td class="truncate max-w-[320px]">{{ r.desc }}</td>
+          <td>{{ r.unidad }}</td>
+          <td>{{ r.precio }}</td>
+          <td class="rel">
+            <button class="dots" type="button"
+                    [class.disabled]="!isAdmin()"
+                    (click)="isAdmin() && toggleRowMenu(i)">⋯</button>
+            <div class="menu" *ngIf="openMenuIndex()===i && isAdmin()">
+              <button type="button" (click)="editProduct(i)">Editar</button>
+              <button type="button" (click)="askProductDeactivate(i)">Desactivar</button>
+              <button type="button" (click)="askProductDelete(i)">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ======= TAB: INVENTARIO ======= -->
+    <div *ngIf="active()==='inventario' && canSeeInventory()">
+      <table>
+        <thead>
+          <tr>
+            <th class="w-10"><input type="checkbox" /></th>
+            <th>Nombre de Producto</th>
+            <th>SKU</th>
+            <th>Nombre de Bodega</th>
+            <th>Código de Bodega</th>
+            <th>Cantidad</th>
+            <th class="w-10"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of inventarioVM(); let i=index">
+            <td><input type="checkbox" /></td>
+            <td class="cell-with-img">
+              <span class="avatar"></span>
+              <span class="truncate">{{ r.producto }}</span>
+            </td>
+            <td>{{ r.sku }}</td>
+            <td>{{ r.bodega }}</td>
+            <td>{{ r.codigo }}</td>
+            <td>{{ r.cantidad }}</td>
+            <td class="rel">
+              <button class="dots" type="button"
+                      [class.disabled]="!isAdmin()"
+                      (click)="isAdmin() && toggleRowMenu(i)">⋯</button>
+              <div class="menu" *ngIf="openMenuIndex()===i && isAdmin()">
+                <button type="button" (click)="askInventoryUpdate(i)">Editar (no recomendado)</button>
+                <button type="button" (click)="askInventoryDelete(i)">Eliminar (no recomendado)</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="mt-2 text-xs text-stone-500">
+        Las modificaciones directas a inventario no se recomiendan. Preferir <strong>Movimientos de stock</strong>.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación reutilizable -->
+<app-confirm-modal
+  [open]="confirmOpen()"
+  [title]="confirmTitle()"
+  [subtitle]="confirmSubtitle()"
+  (cancel)="closeConfirm()"
+  (confirm)="confirmProceed()">
+  <ul class="notes">
+    <li>Esta acción puede afectar la trazabilidad del stock.</li>
+    <li>Se recomienda realizar cambios a través de <strong>Movimientos de stock</strong>.</li>
+  </ul>
+</app-confirm-modal>

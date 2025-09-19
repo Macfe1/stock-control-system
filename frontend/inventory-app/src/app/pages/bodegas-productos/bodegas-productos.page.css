@@ -1,0 +1,55 @@
+:host { display: block; }
+
+/* Search */
+.search { height:36px; width:280px; border:1px solid #e5e7eb; border-radius:8px; padding:0 36px 0 12px; outline:none; background:#f5f5f4; font-size:14px; }
+.search-icon { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:12px; color:#9ca3af; }
+
+/* Buttons */
+.btn { height:36px; padding:0 12px; border-radius:10px; font-size:14px; border:1px solid #e5e7eb; background:#fff; }
+.btn.outline { background:#fff; }
+.btn.primary { background:#ef4444; color:#fff; border-color:#ef4444; }
+.btn.primary.disabled { opacity:.5; pointer-events:none; }
+.btn.danger { background:#ef4444; color:#fff; border-color:#ef4444; }
+
+/* Tabs */
+.tabs { display:flex; gap:16px; align-items:center; margin-top:12px; }
+.tab { padding:8px 4px; color:#6b7280; border-bottom:2px solid transparent; font-weight:500; background:none; border-radius:0; }
+.tab.active { color:#ef4444; border-bottom-color:#ef4444; }
+.tab.disabled { color:#9ca3af; pointer-events:none; }
+
+/* Card (tabla) */
+.card { margin-top:12px; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+
+/* Table */
+table { width:100%; border-collapse:separate; border-spacing:0; }
+thead th { text-align:left; font-size:12px; color:#6b7280; font-weight:600; padding:10px 12px; }
+tbody td { padding:12px; border-top:1px solid #f3f4f6; font-size:14px; color:#374151; }
+
+/* Chips */
+.chip { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+.chip-green { background:#dcfce7; color:#166534; border-color:#bbf7d0; }
+.chip-red { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+
+/* Celdas con imagen */
+.cell-with-img { display:flex; align-items:center; gap:10px; min-width:0; }
+.avatar { width:24px; height:24px; border-radius:6px; background:#e5e7eb; flex-shrink:0; }
+
+/* Dots + menú */
+.rel { position:relative; }
+.dots { width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; line-height:1; font-size:16px; }
+.dots.disabled { opacity:.4; pointer-events:none; }
+.menu { position:absolute; right:0; top:32px; z-index:10; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 10px 20px rgba(0,0,0,.08); min-width:180px; padding:6px; }
+.menu button { display:block; width:100%; text-align:left; padding:8px 10px; border-radius:8px; font-size:14px; background:none; border:none; }
+.menu button:hover { background:#f3f4f6; }
+
+/* Modal */
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:40; }
+.modal { position:fixed; inset:0; display:grid; place-items:center; z-index:50; padding:16px; }
+.modal-card { width:100%; max-width:520px; background:#fff; border-radius:16px; border:1px solid #e5e7eb; box-shadow:0 15px 40px rgba(0,0,0,.15); padding:16px; }
+.modal-head { display:flex; gap:12px; align-items:flex-start; margin-bottom:8px; }
+.modal-head .icon { width:36px; height:36px; border-radius:10px; background:#fee2e2; display:grid; place-items:center; }
+.modal-head .title { margin:0; font-size:18px; font-weight:700; color:#111827; }
+.modal-head .subtitle { margin:2px 0 0; font-size:13px; color:#6b7280; }
+.modal-body .text { margin:8px 0; font-size:14px; color:#374151; }
+.modal-body .notes { margin:8px 0 0 18px; font-size:13px; color:#6b7280; list-style:disc; }
+.modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }

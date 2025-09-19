@@ -1,0 +1,95 @@
+<div class="mx-auto max-w-6xl">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-3xl font-semibold text-red-600">Movimientos</h1>
+    <div class="flex items-center gap-2">
+      <div class="relative hidden md:block">
+        <input class="search" placeholder="Buscar…" />
+        <span class="search-icon">🔍</span>
+      </div>
+      <button type="button" class="btn outline">Filtro</button>
+      <button type="button" class="btn primary" (click)="goNuevoIngreso()">+ Nuevo Ingreso</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi"><div class="n">{{ total() | number }}</div><div class="l">Movimientos</div></div>
+    <div class="kpi kpi-green"><div class="n">{{ totalIn() | number }}</div><div class="l">Entradas</div></div>
+    <div class="kpi kpi-red"><div class="n">{{ totalOut() | number }}</div><div class="l">Salidas</div></div>
+    <div class="kpi kpi-yellow"><div class="n">{{ totalTr() | number }}</div><div class="l">Transferencias</div></div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th class="w-10"><input type="checkbox" /></th>
+          <th>Nombre</th>
+          <th>SKU</th>
+          <th>Fecha de Ingreso</th>
+          <th>Bodega</th>
+          <th>Cantidad</th>
+          <th>Tipo</th>
+          <th class="w-10"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rows(); let i = index">
+          <td><input type="checkbox" /></td>
+
+          <td class="cell-with-img">
+            <span class="avatar"></span>
+            <div class="truncate">
+              <div class="font-medium">{{ r.userName }}</div>
+              <div class="text-xs text-stone-500">{{ r.productName }}</div>
+            </div>
+          </td>
+
+          <td>{{ r.sku }}</td>
+          <td>{{ r.date | date:'dd/MM/YYYY' }}</td>
+          <td>{{ r.warehouseName }}</td>
+          <td>{{ r.quantity }}</td>
+
+          <!-- Chips con tus clases -->
+          <td>
+            <span class="chip"
+                  [ngClass]="{
+                    'chip-green':  r.type === 'INBOUND',
+                    'chip-red':    r.type === 'OUTBOUND',
+                    'chip-yellow': r.type === 'TRANSFER',
+                    'chip-gray':   r.type === 'ADJUSTMENT'
+                  }">
+              {{ typeLabel(r.type) }}
+            </span>
+          </td>
+
+          <td class="rel">
+            <button class="dots"
+                    [class.disabled]="!isAdmin()"
+                    (click)="isAdmin() && toggleRowMenu(i)">⋯</button>
+            <div class="menu" *ngIf="openMenuIndex()===i && isAdmin()">
+              <button type="button" (click)="openConfirm('update', r.id)">Editar</button>
+              <button type="button" (click)="openConfirm('deactivate', r.id)">Desactivar</button>
+              <button type="button" (click)="openConfirm('delete', r.id)">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal de confirmación reutilizable -->
+<app-confirm-modal
+  [open]="confirmOpen()"
+  [title]="confirmTitle()"
+  [subtitle]="confirmSubtitle()"
+  (cancel)="closeConfirm()"
+  (confirm)="confirmProceed()">
+  <ul class="notes">
+    <li>Editar, desactivar o eliminar movimientos impacta la trazabilidad.</li>
+    <li>Cuando sea posible, prefiere registrar correcciones como <strong>Ajuste</strong>.</li>
+  </ul>
+</app-confirm-modal>

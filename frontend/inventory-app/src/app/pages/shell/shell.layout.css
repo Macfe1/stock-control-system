@@ -1,0 +1,63 @@
+
+/* Asegura que la app no desborde por el header */
+main {
+    min-width: 0;
+}
+
+/* Sidebar ancho fijo + scroll interno si crece */
+.sidebar {
+    width: 260px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+/* Enlace base */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #44403c;
+    /* stone-700 */
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+/* Slot fijo para iconos (no se deforma) */
+.menu-item .icon-slot {
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+/* Estado activo */
+.menu-item.active {
+    background: #fecaca;
+    /* red-200 */
+    font-weight: 600;
+}
+
+.icon-slot { width:22px; display:inline-grid; place-items:center; }
+.label { font-weight:500; }
+
+/* Evitar desbordes largos */
+.menu-item .label {
+    min-width: 0;
+}
+
+.menu-item.disabled {
+    pointer-events: none;            /* no clic */
+    opacity: .55;                    /* aspecto deshabilitado */
+    filter: grayscale(.2);
+}
+
+.divider { 
+    border: 0;
+    height: 1px;
+    background: #e5e7eb;
+    margin: 10px 6px; 
+}

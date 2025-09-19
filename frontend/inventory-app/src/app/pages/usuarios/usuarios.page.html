@@ -1,0 +1,108 @@
+<div class="mx-auto max-w-6xl">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-xl overflow-hidden bg-stone-100 grid place-items-center shrink-0">
+        <span class="text-2xl">👤</span>
+      </div>
+      <div>
+        <h1 class="text-3xl font-semibold text-red-600 leading-tight">Usuarios</h1>
+        <div class="text-sm text-stone-500">{{ total() }} en total</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div class="relative hidden md:block">
+        <input class="search" placeholder="Buscar…" />
+        <span class="search-icon">🔍</span>
+      </div>
+      <button type="button" class="btn primary" (click)="openCreate()">+ Crear usuario</button>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="card" *ngFor="let u of rows(); let i = index">
+      <div class="card-head">
+        <div class="flex gap-3">
+          <div class="avatar"><img src="/assets/avatar.jpg" alt="" /></div>
+          <div>
+            <div class="name">{{ u.name || '—' }}</div>
+            <div class="meta">{{ u.email }}</div>
+            <span class="role" [class.r-admin]="u.role==='admin'"
+                               [class.r-operator]="u.role==='operator'"
+                               [class.r-public]="u.role==='public'">
+              {{ u.role }}
+            </span>
+            <span class="ml-2 chip" [class.chip-green]="u.active" [class.chip-red]="!u.active">
+              {{ u.active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="relative">
+          <button class="dots" (click)="toggleRowMenu(i)">⋯</button>
+          <div class="menu" *ngIf="openMenuIndex()===i">
+            <button type="button" (click)="openEdit(i)">Editar</button>
+            <button type="button" (click)="askToggleActive(i)">{{ u.active ? 'Desactivar' : 'Activar' }}</button>
+            <button type="button" (click)="askDelete(i)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="info">
+        <div class="row"><span class="icon">🆔</span> {{ u.id }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crear/Editar -->
+<div class="modal-backdrop" *ngIf="isOpen()"></div>
+<div class="modal" *ngIf="isOpen()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="avatar big"><img src="/assets/avatar.jpg" alt="" /></div>
+      <div>
+        <h3 class="title">{{ isEdit() ? 'Editar usuario' : 'Crear usuario' }}</h3>
+        <p class="subtitle">Completa los campos requeridos.</p>
+      </div>
+    </div>
+
+    <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+      <input class="input" type="text" placeholder="Nombre" formControlName="name" />
+      <input class="input" type="email" placeholder="Email" formControlName="email" />
+
+      <div class="row2">
+        <input class="input" type="password" placeholder="Contraseña" formControlName="password" />
+        <select class="input" formControlName="role">
+          <option value="public">public</option>
+          <option value="operator">operator</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+
+      <label class="row">
+        <input type="checkbox" formControlName="active" class="mr-2" />
+        Usuario activo
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" class="btn outline" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn primary">{{ isEdit() ? 'Guardar' : 'Crear' }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirm genérico -->
+<app-confirm-modal
+  [open]="confirmOpen()"
+  [title]="confirmTitle()"
+  [subtitle]="confirmSubtitle()"
+  (cancel)="closeConfirm()"
+  (confirm)="confirmProceed()">
+  <ul class="notes">
+    <li>Esta acción impacta el acceso del usuario.</li>
+  </ul>
+</app-confirm-modal>

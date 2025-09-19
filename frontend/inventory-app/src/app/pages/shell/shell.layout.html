@@ -1,0 +1,80 @@
+<div class="min-h-screen grid grid-cols-[260px_1fr]">
+  <!-- SIDEBAR -->
+  <aside class="sidebar bg-white text-stone-700 border-r">
+    <div class="px-4 pt-6 pb-4 flex items-center gap-3">
+      <!-- Logo en capa -->
+      <div class="h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-stone-100 grid place-items-center">
+        <img src="/assets/logo.png" alt="Logo" class="h-8 w-8 object-contain" />
+      </div>
+      <div class="leading-tight">
+        <div class="font-semibold">D1 – Stock Manager</div>
+        <div class="text-xs text-stone-500">V2.0</div>
+      </div>
+    </div>
+
+    <nav class="px-2 pb-4 space-y-1 overflow-y-auto">
+      <a class="menu-item" routerLink="/app/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="icon-slot">📊</span><span class="label truncate">Dashboard</span>
+      </a>
+
+      <a class="menu-item" routerLink="/app/bodegas-productos" routerLinkActive="active">
+        <span class="icon-slot">🛒</span><span class="label truncate">Bodegas &amp; Productos</span>
+      </a>
+
+      <!-- Solo operator/admin -->
+      <a *ngIf="auth.role()==='operator' || auth.role()==='admin'"
+         class="menu-item" routerLink="/app/movimientos" routerLinkActive="active">
+        <span class="icon-slot">🔁</span><span class="label truncate">Movimientos</span>
+      </a>
+
+      <a *ngIf="auth.role()==='operator' || auth.role()==='admin'"
+         class="menu-item" routerLink="/app/nuevo-ingreso" routerLinkActive="active">
+        <span class="icon-slot">➕</span><span class="label truncate">Nuevo Ingreso</span>
+      </a>
+
+      <!-- Solo admin -->
+      <a *ngIf="auth.role()==='admin'" class="menu-item" routerLink="/app/usuarios" routerLinkActive="active">
+        <span class="icon-slot">👤</span><span class="label truncate">Usuarios</span>
+      </a>
+
+      <hr class="my-2" />
+
+      <!-- Enlaces “muertos” (no navegan) -->
+      <button type="button" class="menu-item w-full text-left">
+        <span class="icon-slot">⚙️</span><span class="label truncate">Ajustes</span>
+      </button>
+      <button type="button" class="menu-item w-full text-left">
+        <span class="icon-slot">❓</span><span class="label truncate">Ayuda</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="bg-slate-50 min-h-screen">
+    <header class="h-14 bg-white border-b shadow-sm flex items-center justify-between px-4">
+      <input placeholder="Buscar…"
+             class="hidden md:block w-72 h-9 rounded-lg bg-stone-100 px-3 text-sm outline-none" />
+      <div class="flex items-center gap-4">
+        <button type="button" class="relative h-8 w-8 rounded-full grid place-items-center border">🔔
+          <span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <div class="h-9 w-9 rounded-full overflow-hidden border bg-stone-100 shrink-0">
+            <img src="/assets/avatar.jpg" alt="avatar" class="h-full w-full object-cover" />
+          </div>
+          <div class="leading-tight">
+            <div class="text-sm font-medium truncate max-w-[140px]">{{ auth.user()?.email }}</div>
+            <div class="text-xs text-stone-500 capitalize">{{ auth.user()?.role }}</div>
+          </div>
+        </div>
+
+        <button type="button" (click)="auth.logout()" class="text-sm px-3 py-1 rounded-lg border">Salir</button>
+      </div>
+    </header>
+
+    <section class="p-6">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

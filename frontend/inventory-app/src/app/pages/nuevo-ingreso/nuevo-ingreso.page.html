@@ -1,0 +1,71 @@
+<div class="min-h-[calc(100vh-56px)] bg-slate-100 grid place-items-start">
+  <div class="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow p-6 mt-6 border overflow-hidden">
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-2xl">➕</span>
+      <h1 class="text-2xl font-semibold text-red-600">Nuevo Movimiento</h1>
+    </div>
+    <hr class="mb-6 border-t border-stone-300 w-70 ml-auto" wid >
+
+    <form class="space-y-6" [formGroup]="form" (ngSubmit)="submit()">
+        <!-- Usuario (placeholder) -->
+      <section class="grid md:grid-cols-3 gap-4 mb-5 mt-5">
+        <label class="md:col-span-1 text-sm font-medium text-stone-600 pt-2">Usuario</label>
+        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input class="input" placeholder="Nombre" />
+          <input class="input" placeholder="Correo" />
+          <input class="input" placeholder="Cargo" />
+        </div>
+      </section>
+
+      <!-- Producto -->
+      <section class="grid md:grid-cols-3 gap-4 mt-5">
+        <label class="md:col-span-1 text-sm font-medium text-stone-600 pt-2">Producto</label>
+        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input class="input" placeholder="SKU" formControlName="sku" />
+          <input class="input" type="number" placeholder="Cantidad" formControlName="cantidad" />
+        </div>
+      </section>
+
+      <!-- Tipo de movimiento -->
+      <section class="grid md:grid-cols-3 gap-4 mb-5">
+        <label class="md:col-span-1 text-sm font-medium text-stone-600 pt-2">Tipo</label>
+        <div class="md:col-span-2 col-span-2 flex flex-wrap items-center gap-6">
+          <label class="radio" *ngFor="let opt of movementOptions">
+            <input type="radio" formControlName="tipo" [value]="opt.value" />
+            <span>{{ opt.label }}</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Bodegas -->
+      <section class="grid md:grid-cols-3 gap-4">
+        <label class="md:col-span-1 text-sm font-medium text-stone-600 pt-2">Bodegas</label>
+        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <select class="input" formControlName="bodegaOrigen">
+            <option [ngValue]="null" disabled>Bodega Origen</option>
+            <option *ngFor="let b of bodegas" [ngValue]="b.id">{{ b.nombre }}</option>
+          </select>
+
+          <select class="input" formControlName="bodegaDestino">
+            <option [ngValue]="null" disabled>Bodega Destino</option>
+            <option *ngFor="let b of bodegas" [ngValue]="b.id">{{ b.nombre }}</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Razón -->
+      <section class="grid md:grid-cols-3 gap-4">
+        <label class="md:col-span-1 text-sm font-medium text-stone-600 pt-2">Razón</label>
+        <div class="md:col-span-2">
+          <textarea class="input" rows="3" placeholder="Razón" formControlName="razon"></textarea>
+        </div>
+      </section>
+
+      <div class="flex justify-end">
+        <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700" [disabled]="form.invalid">
+          Ingresar registro
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
