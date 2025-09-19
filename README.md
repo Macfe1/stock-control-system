@@ -3,7 +3,8 @@
 Sistema de gestión de inventario con Angular + Tailwind en el frontend y Hasura GraphQL + Postgres (Docker) en el backend.
 Incluye autenticación simulada en el frontend con roles (public, operator, admin) y guardas de ruta, y un modelo de datos preparado para productos, bodegas, inventario y movimientos de stock.
 
-### Nota: Las operaciones de CRUD ya están disponibles en el backend, pero no todas quedaron conectadas a la UI. Quedaron listas para ser invocadas desde los services del frontend o directamente vía GraphQL. Detalles abajo.
+### Nota:
+Las operaciones de CRUD ya están disponibles en el backend, pero no todas quedaron conectadas a la UI. Quedaron listas para ser invocadas desde los services del frontend o directamente vía GraphQL. Detalles abajo.
 
 
 ## Estructura del repositorio
@@ -40,7 +41,7 @@ inventory-backoffice/
 
 ### Roles y permisos (frontend)
 
-#### public:
+### public:
 
 - Puede ver Productos (catálogo) y Bodegas.
 
@@ -74,7 +75,7 @@ inventory-backoffice/
 
 	* Acciones directas (create/update/delete) desaconsejadas en UI; modal de confirmación presente.
 
-	* Regla recomendada: cambios de inventario se realizan por Movimientos (ver trigger).
+	* Regla recomendada: cambios de inventario se realizan por movimientos (ver trigger).
 
 - Movimientos:
 
@@ -82,7 +83,7 @@ inventory-backoffice/
 
 	* MovementsService preparado con GraphQL (create/update/delete).
 
-	* Trigger SQL (backend) actualiza inventory automáticamente tras cada movimiento.
+	* Trigger SQL (backend) actualiza inventario automáticamente tras cada movimiento.
 
 - Usuarios:
 	* Página y modal de creación listos a nivel UI; pendiente conectar mutaciones finales en UsersService (admin-only).
@@ -90,7 +91,7 @@ inventory-backoffice/
 
 ### 🔐 Reglas de negocio clave
 
-- Inventario se actualiza por trigger tras cada inserción/actualización de stock movements.
+- El inventario se actualiza por trigger tras cada inserción/actualización de movimientos de stock.
 
 	* INBOUND → suma en el destino
 
@@ -115,7 +116,7 @@ inventory-backoffice/
 
 ### 🔑 Autenticación (mock) y roles
 
-La autenticación es simulada, (sin backend auth).
+La autenticación es simulada (sin backend auth).
 
 - Ver src/app/services/auth.service.ts. Allí están los usuarios semilla (email/role/password) y el manejo de localStorage.
 
