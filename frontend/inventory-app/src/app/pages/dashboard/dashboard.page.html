@@ -1,3 +1,81 @@
-<div class="min-h-[100vh] bg-stone-200 p-6 rounded-lg">
-    <!-- contenido del dashboard -->
+<!--Una imagen de referencia-->
+<div class="min-h-[100vh] bg-stone-200 p-6 rounded-lg relative overflow-hidden">
+  <!-- Overlay con opacidad para que se vea como si fuera tu app -->
+  <div class="absolute inset-0 bg-white/10 backdrop-blur-[1px] z-10"></div>
+  
+  <!-- Imagen de dashboard como fondo -->
+  <div class="absolute inset-0 bg-cover bg-center bg-no-repeat z-0" 
+       style="background-image: url('assets/dashboard-contenido.png');">
+  </div>
+  
+  <!-- Contenido superpuesto -->
+  <div class="relative z-20">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Dashboard de Referencia</h1>
+      <p class="text-gray-600">Vista general del sistema</p>
+    </div>
+    
+    <!-- Tarjetas flotantes con info real -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <!-- Total Productos -->
+      <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
+        <div class="flex items-center">
+          <div class="p-3 bg-blue-100 rounded-lg">
+            <span class="text-2xl">📦</span>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-sm font-medium text-gray-600">Total Productos</h3>
+            <p class="text-2xl font-bold text-gray-900">{{ count() }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bodegas Activas -->
+      <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
+        <div class="flex items-center">
+          <div class="p-3 bg-green-100 rounded-lg">
+            <span class="text-2xl">🏢</span>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-sm font-medium text-gray-600">Bodegas</h3>
+            <p class="text-2xl font-bold text-gray-900">5</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Movimientos Hoy -->
+      <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
+        <div class="flex items-center">
+          <div class="p-3 bg-yellow-100 rounded-lg">
+            <span class="text-2xl">📈</span>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-sm font-medium text-gray-600">Movimientos</h3>
+            <p class="text-2xl font-bold text-gray-900">{{ doubled() }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Usuarios -->
+      <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
+        <div class="flex items-center">
+          <div class="p-3 bg-purple-100 rounded-lg">
+            <span class="text-2xl">👥</span>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-sm font-medium text-gray-600">Usuarios</h3>
+            <p class="text-2xl font-bold text-gray-900">12</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center">
+      <button (click)="inc()" 
+              class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg transition-colors">
+        Incrementar Contador: {{ count() }}
+      </button>
+    </div>
+  </div>
 </div>

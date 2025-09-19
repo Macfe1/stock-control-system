@@ -7,17 +7,29 @@
         <input class="search" placeholder="Buscar…" />
         <span class="search-icon">🔍</span>
       </div>
-      <button type="button" class="btn outline">Filtro</button>
-      <button type="button" class="btn primary" (click)="goNuevoIngreso()">+ Nuevo Ingreso</button>
+      <button type="button" class="btn outline" (click)="goNuevoIngreso()">Nuevo ingreso (form guiado)</button>
+      <button type="button" class="btn primary" (click)="openCreate()" [class.disabled]="auth.role()==='public'">+ Crear</button>
     </div>
   </div>
 
   <!-- KPIs -->
   <div class="kpis">
-    <div class="kpi"><div class="n">{{ total() | number }}</div><div class="l">Movimientos</div></div>
-    <div class="kpi kpi-green"><div class="n">{{ totalIn() | number }}</div><div class="l">Entradas</div></div>
-    <div class="kpi kpi-red"><div class="n">{{ totalOut() | number }}</div><div class="l">Salidas</div></div>
-    <div class="kpi kpi-yellow"><div class="n">{{ totalTr() | number }}</div><div class="l">Transferencias</div></div>
+    <div class="kpi">
+      <div class="n">{{ total() | number }}</div>
+      <div class="l">Movimientos</div>
+    </div>
+    <div class="kpi kpi-green">
+      <div class="n">{{ totalIn() | number }}</div>
+      <div class="l">Entradas</div>
+    </div>
+    <div class="kpi kpi-red">
+      <div class="n">{{ totalOut() | number }}</div>
+      <div class="l">Salidas</div>
+    </div>
+    <div class="kpi kpi-yellow">
+      <div class="n">{{ totalTr() | number }}</div>
+      <div class="l">Transferencias</div>
+    </div>
   </div>
 
   <!-- Tabla -->
@@ -26,9 +38,9 @@
       <thead>
         <tr>
           <th class="w-10"><input type="checkbox" /></th>
-          <th>Nombre</th>
+          <th>Usuario / Producto</th>
           <th>SKU</th>
-          <th>Fecha de Ingreso</th>
+          <th>Fecha</th>
           <th>Bodega</th>
           <th>Cantidad</th>
           <th>Tipo</th>
@@ -42,27 +54,18 @@
           <td class="cell-with-img">
             <span class="avatar"></span>
             <div class="truncate">
-              <div class="font-medium">{{ r.userName }}</div>
-              <div class="text-xs text-stone-500">{{ r.productName }}</div>
+              <div class="font-medium">{{ r.user?.name || r.user?.email }}</div>
+              <div class="text-xs text-stone-500">{{ r.product?.name }}</div>
             </div>
           </td>
 
-          <td>{{ r.sku }}</td>
-          <td>{{ r.date | date:'dd/MM/YYYY' }}</td>
-          <td>{{ r.warehouseName }}</td>
+          <td>{{ r.product?.sku }}</td>
+          <td>{{ r.created_at | date:'dd/MM/YYYY HH:mm' }}</td>
+          <td>{{ r.warehouse?.name }} ({{ r.warehouse?.code }})</td>
           <td>{{ r.quantity }}</td>
 
-          <!-- Chips con tus clases -->
           <td>
-            <span class="chip"
-                  [ngClass]="{
-                    'chip-green':  r.type === 'INBOUND',
-                    'chip-red':    r.type === 'OUTBOUND',
-                    'chip-yellow': r.type === 'TRANSFER',
-                    'chip-gray':   r.type === 'ADJUSTMENT'
-                  }">
-              {{ typeLabel(r.type) }}
-            </span>
+            <span [class]="chipClass(r.type)">{{ typeLabel(r.type) }}</span>
           </td>
 
           <td class="rel">
@@ -70,9 +73,9 @@
                     [class.disabled]="!isAdmin()"
                     (click)="isAdmin() && toggleRowMenu(i)">⋯</button>
             <div class="menu" *ngIf="openMenuIndex()===i && isAdmin()">
-              <button type="button" (click)="openConfirm('update', r.id)">Editar</button>
-              <button type="button" (click)="openConfirm('deactivate', r.id)">Desactivar</button>
-              <button type="button" (click)="openConfirm('delete', r.id)">Eliminar</button>
+              <button type="button" (click)="openEdit(r)">Editar</button>
+              <button type="button" (click)="askDeactivate(r)">Desactivar</button>
+              <button type="button" (click)="askDelete(r)">Eliminar</button>
             </div>
           </td>
         </tr>
@@ -81,7 +84,70 @@
   </div>
 </div>
 
-<!-- Modal de confirmación reutilizable -->
+<!-- Modal de creación/edición -->
+<div class="modal-backdrop" *ngIf="isFormOpen()"></div>
+<div class="modal" *ngIf="isFormOpen()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="icon">📝</div>
+      <div>
+        <h3 class="title">{{ editingId() ? 'Editar movimiento' : 'Nuevo movimiento' }}</h3>
+        <p class="subtitle">El inventario se actualizará por trigger del servidor.</p>
+      </div>
+    </div>
+
+    <form class="form" [formGroup]="form" (ngSubmit)="submitForm()">
+      <div class="row3">
+        <label class="f">
+          <span class="l">Tipo</span>
+          <select class="input" formControlName="type">
+            <option value="INBOUND">Entrada</option>
+            <option value="OUTBOUND">Salida</option>
+            <option value="TRANSFER">Transferencia</option>
+            <option value="ADJUSTMENT">Ajuste</option>
+          </select>
+        </label>
+
+        <label class="f">
+          <span class="l">Producto</span>
+          <select class="input" formControlName="product_id">
+            <option [ngValue]="null" disabled>Seleccionar…</option>
+            <option *ngFor="let p of productsOpts()" [value]="p.id">{{ p.name }} — {{ p.sku }}</option>
+          </select>
+        </label>
+
+        <label class="f">
+          <span class="l">Bodega</span>
+          <select class="input" formControlName="warehouse_id" [required]="mustHaveWarehouse">
+            <option [ngValue]="null" disabled>Seleccionar…</option>
+            <option *ngFor="let w of warehousesOpts()" [value]="w.id">{{ w.name }} — {{ w.code }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row2">
+        <label class="f">
+          <span class="l">Cantidad</span>
+          <input class="input" type="number" min="1" formControlName="quantity">
+        </label>
+
+        <label class="f">
+          <span class="l">Razón (requerida si Ajuste)</span>
+          <input class="input" type="text" formControlName="reason" placeholder="Opcional salvo Ajuste">
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn" (click)="closeForm()">Cancelar</button>
+        <button type="submit" class="btn primary" [disabled]="form.invalid">
+          {{ editingId() ? 'Guardar' : 'Crear' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal confirm reutilizable -->
 <app-confirm-modal
   [open]="confirmOpen()"
   [title]="confirmTitle()"
@@ -89,7 +155,7 @@
   (cancel)="closeConfirm()"
   (confirm)="confirmProceed()">
   <ul class="notes">
-    <li>Editar, desactivar o eliminar movimientos impacta la trazabilidad.</li>
-    <li>Cuando sea posible, prefiere registrar correcciones como <strong>Ajuste</strong>.</li>
+    <li>Editar / Desactivar / Eliminar puede afectar la trazabilidad.</li>
+    <li>Para correcciones operativas, considera registrar un <strong>Ajuste</strong>.</li>
   </ul>
 </app-confirm-modal>

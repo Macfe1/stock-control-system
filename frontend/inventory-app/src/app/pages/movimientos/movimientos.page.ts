@@ -1,48 +1,45 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, computed, signal, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom, Subscription } from 'rxjs';
+
 import { AuthService } from '../../services/auth.service';
+import { MovementsService, Movement, MovementType } from '../../services/movements.service';
+import { ProductsService, Product } from '../../services/products.service';
+import { WarehousesService, Warehouse } from '../../services/warehouses.service';
 import { ConfirmModalComponent } from '../../components/confirm-modal/confirm-modal.component';
-
-type MovementType = 'INBOUND' | 'OUTBOUND' | 'TRANSFER' | 'ADJUSTMENT';
-type Action = 'update' | 'deactivate' | 'delete';
-
-interface MovementRow {
-  id: string;
-  date: string;                 // ISO/visual para la tabla
-  userId: string;
-  userName: string;
-  productId: string;
-  productName: string;
-  warehouseId: string;
-  warehouseName: string;
-  sku: string;
-  type: MovementType;
-  quantity: number;
-  reason: string;
-  active?: boolean;             // para “desactivar” (soft delete)
-}
 
 @Component({
   standalone: true,
   selector: 'app-movimientos',
-  imports: [CommonModule, ConfirmModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmModalComponent],
   templateUrl: './movimientos.page.html',
   styleUrls: ['./movimientos.page.css'],
 })
-export class MovimientosPage {
-  constructor(public auth: AuthService, private router: Router) {}
+export class MovimientosPage implements OnInit, OnDestroy {
+  // ✅ Declarar como propiedad sin inicializar
+  form!: FormGroup;
 
+  constructor(
+    public auth: AuthService,
+    private router: Router,
+    private fb: FormBuilder,
+    private movements: MovementsService,
+    private products: ProductsService,
+    private warehouses: WarehousesService,
+  ) {}
+
+  private subs: Subscription[] = [];
+  ngOnDestroy() { this.subs.forEach(s => s.unsubscribe()); }
+
+  // ==== Roles
   isAdmin = computed(() => this.auth.role() === 'admin');
 
-  // MOCK data (reemplazar por query a Hasura)
-  rows = signal<MovementRow[]>([
-    { id:'m1', date:'2025-10-02', userId:'u6', userName:'Andrés Ramírez', productId:'p1', productName:'Café Molido Tradicional', warehouseId:'w1', warehouseName:'Cajicá G412', sku:'KS7350TUS', type:'INBOUND',  quantity:486, reason:'Reposición', active:true },
-    { id:'m2', date:'2025-10-02', userId:'u6', userName:'Andrés Ramírez', productId:'p2', productName:'Detergente Multiusos',    warehouseId:'w1', warehouseName:'Cajicá G412', sku:'GT3791PER', type:'OUTBOUND', quantity:30,  reason:'Salida a tienda', active:true },
-    { id:'m3', date:'2025-10-02', userId:'u6', userName:'Andrés Ramírez', productId:'p2', productName:'Detergente Multiusos',    warehouseId:'w2', warehouseName:'Bogotá J321', sku:'GT3791PER', type:'TRANSFER', quantity:18,  reason:'Traslado', active:true },
-    { id:'m4', date:'2025-10-02', userId:'u6', userName:'Andrés Ramírez', productId:'p1', productName:'Café Molido Tradicional', warehouseId:'w1', warehouseName:'Cajicá G412', sku:'KS7350TUS', type:'ADJUSTMENT', quantity:2,   reason:'Ajuste inventario', active:true },
-    { id:'m5', date:'2025-10-02', userId:'u6', userName:'Andrés Ramírez', productId:'p1', productName:'Café Molido Tradicional', warehouseId:'w1', warehouseName:'Cajicá G412', sku:'KS7350TUS', type:'INBOUND',  quantity:120, reason:'Reposición', active:true },
-  ]);
+  // ==== Data VM
+  rows = signal<Movement[]>([]);
+  productsOpts = signal<Product[]>([]);
+  warehousesOpts = signal<Warehouse[]>([]);
 
   // KPIs
   total   = computed(() => this.rows().length);
@@ -50,77 +47,179 @@ export class MovimientosPage {
   totalOut= computed(() => this.rows().filter(r => r.type==='OUTBOUND').length);
   totalTr = computed(() => this.rows().filter(r => r.type==='TRANSFER').length);
 
-  // Menú ⋯
+  // Dots menu
   openMenuIndex = signal<number | null>(null);
   toggleRowMenu(i: number) {
     this.openMenuIndex.set(this.openMenuIndex() === i ? null : i);
   }
 
-  // ===== Modal de confirmación (reutilizable) =====
+  // ==== Modal crear/editar movimiento
+  isFormOpen = signal(false);
+  editingId = signal<string | null>(null);
+
+  // Reglas de validación por tipo
+  get mustHaveWarehouse() {
+    const t = this.form?.value?.type;
+    return t === 'INBOUND' || t === 'OUTBOUND' || t === 'ADJUSTMENT';
+  }
+
+  // ==== Confirm modal (para desactivar/eliminar)
   confirmOpen = signal(false);
-  confirmAction = signal<Action | null>(null);
-  confirmRowId = signal<string | null>(null);
   confirmTitle = signal('Confirmar acción');
-  confirmSubtitle = signal('Esta operación afecta la trazabilidad.');
+  confirmSubtitle = signal('');
+  private _confirmDo: (() => void | Promise<void>) | null = null;
 
-  openConfirm(action: Action, rowId: string) {
+  openConfirm(title: string, subtitle: string, run: () => void | Promise<void>) {
     if (!this.isAdmin()) return;
-    this.confirmAction.set(action);
-    this.confirmRowId.set(rowId);
-
-    if (action === 'update') {
-      this.confirmTitle.set('Editar movimiento');
-      this.confirmSubtitle.set('Evita editar movimientos históricos salvo que sea estrictamente necesario.');
-    } else if (action === 'deactivate') {
-      this.confirmTitle.set('Desactivar movimiento');
-      this.confirmSubtitle.set('El movimiento quedará inactivo (active=false) para conservar la trazabilidad.');
-    } else {
-      this.confirmTitle.set('Eliminar movimiento');
-      this.confirmSubtitle.set('Eliminar un movimiento puede romper la trazabilidad. Considera desactivarlo.');
-    }
-
+    this.confirmTitle.set(title);
+    this.confirmSubtitle.set(subtitle);
+    this._confirmDo = run;
     this.confirmOpen.set(true);
     this.openMenuIndex.set(null);
   }
-  closeConfirm() {
-    this.confirmOpen.set(false);
-    this.confirmAction.set(null);
-    this.confirmRowId.set(null);
+  closeConfirm() { this.confirmOpen.set(false); this._confirmDo = null; }
+  async confirmProceed() { await this._confirmDo?.(); this.closeConfirm(); }
+
+  // ==== Lifecycle: cargar listas
+  ngOnInit() {
+    // ✅ Inicializar form aquí, después del constructor
+    this.form = this.fb.group({
+      type:        ['INBOUND' as MovementType, Validators.required],
+      product_id:  [null as string | null, Validators.required],
+      warehouse_id:[null as string | null], // requerido segun tipo
+      quantity:    [0, [Validators.required, Validators.min(1)]],
+      reason:      ['' as string | null],
+    });
+
+    // Reaccionar al cambio de tipo para reglas simples
+    this.form.get('type')!.valueChanges.subscribe(() => {
+      if (this.mustHaveWarehouse) {
+        this.form.get('warehouse_id')!.addValidators([Validators.required]);
+      } else {
+        this.form.get('warehouse_id')!.clearValidators();
+      }
+      this.form.get('warehouse_id')!.updateValueAndValidity();
+    });
+
+    // Movimientos
+    this.subs.push(
+      this.movements.watchList().valueChanges.subscribe(({ data }: any) => {
+        this.rows.set(data?.stock_movements ?? []);
+      })
+    );
+    // Productos para selects
+    this.subs.push(
+      this.products.watchList(true).valueChanges.subscribe(({ data }: any) => {
+        this.productsOpts.set(data?.products ?? []);
+      })
+    );
+    // Bodegas para selects
+    this.subs.push(
+      this.warehouses.watchList(true).valueChanges.subscribe(({ data }: any) => {
+        this.warehousesOpts.set(data?.warehouses ?? []);
+      })
+    );
   }
-  confirmProceed() {
-    const action = this.confirmAction();
-    const id = this.confirmRowId();
-    if (!action || !id) return;
 
-    // TODO: sustituir por mutations a Hasura
-    if (action === 'deactivate') {
-      const list = this.rows().map(r => r.id === id ? { ...r, active: false } : r);
-      this.rows.set(list);
-      console.log('[MOVIMIENTOS] deactivate (soft delete)', id);
-      alert(`(Demo) Movimiento desactivado: ${id}`);
-    } else if (action === 'delete') {
-      const list = this.rows().filter(r => r.id !== id);
-      this.rows.set(list);
-      console.log('[MOVIMIENTOS] delete (hard delete)', id);
-      alert(`(Demo) Movimiento eliminado: ${id}`);
-    } else {
-      console.log('[MOVIMIENTOS] update', id);
-      alert(`(Demo) Editar movimiento: ${id}`);
-    }
-
-    this.closeConfirm();
-  }
-  // ================================================
-
-  goNuevoIngreso() {
-    this.router.navigate(['/app/nuevo-ingreso']);
-  }
-
-  // Helpers UI
+  // ==== Helpers UI
   typeLabel(t: MovementType) {
     return t === 'INBOUND' ? 'Entrada'
          : t === 'OUTBOUND' ? 'Salida'
          : t === 'TRANSFER' ? 'Transferencia'
          : 'Ajuste';
+  }
+
+  chipClass(t: MovementType) {
+    return t === 'INBOUND' ? 'chip chip-green'
+         : t === 'OUTBOUND' ? 'chip chip-red'
+         : t === 'TRANSFER' ? 'chip chip-yellow'
+         : 'chip chip-gray';
+  }
+
+  openCreate() {
+    // operador y admin pueden abrir
+    if (this.auth.role() === 'public') return;
+    this.editingId.set(null);
+    this.form.reset({
+      type: 'INBOUND',
+      product_id: null,
+      warehouse_id: null,
+      quantity: 1,
+      reason: ''
+    });
+    this.isFormOpen.set(true);
+  }
+
+  openEdit(row: Movement) {
+    if (!this.isAdmin()) return;
+    this.editingId.set(row.id);
+    this.form.reset({
+      type: row.type,
+      product_id: row.product_id,
+      warehouse_id: row.warehouse_id ?? null,
+      quantity: row.quantity,
+      reason: row.reason ?? ''
+    });
+    this.isFormOpen.set(true);
+  }
+
+  closeForm() { this.isFormOpen.set(false); }
+
+  async submitForm() {
+    if (this.form.invalid) return;
+
+    const payload = this.form.value as {
+      type: MovementType; product_id: string; warehouse_id: string | null; quantity: number; reason: string | null;
+    };
+
+    // Validaciones mínimas pedidas: reason obligatorio si ADJUSTMENT
+    if (payload.type === 'ADJUSTMENT' && !payload.reason) {
+      alert('La razón es obligatoria para los Ajustes.');
+      return;
+    }
+
+    // Construir objeto para mutation
+    const obj = {
+      type: payload.type,
+      product_id: payload.product_id,
+      warehouse_id: payload.warehouse_id, // si tu TRANSFER usa dos campos, ver notas más abajo
+      quantity: Number(payload.quantity),
+      reason: payload.reason || null,
+      active: true,
+      user_id: this.auth.user()?.id ?? '00000000-0000-0000-0000-000000000000', // si manejas id en auth mock
+    };
+
+    if (!this.editingId()) {
+      // CREATE (operator/admin)
+      await firstValueFrom(this.movements.insert(obj));
+    } else {
+      // UPDATE (solo admin)
+      if (!this.isAdmin()) return;
+      await firstValueFrom(this.movements.update(this.editingId()!, {
+        type: obj.type,
+        product_id: obj.product_id,
+        warehouse_id: obj.warehouse_id,
+        quantity: obj.quantity,
+        reason: obj.reason,
+      }));
+    }
+
+    this.closeForm();
+  }
+
+  // Acciones admin
+  askDeactivate(row: Movement) {
+    this.openConfirm('Desactivar movimiento', 'Se mantendrá para trazabilidad (active=false).', async () => {
+      await firstValueFrom(this.movements.deactivate(row.id));
+    });
+  }
+  askDelete(row: Movement) {
+    this.openConfirm('Eliminar movimiento', 'Eliminar puede afectar la trazabilidad. ¿Seguro?', async () => {
+      await firstValueFrom(this.movements.delete(row.id));
+    });
+  }
+
+  goNuevoIngreso() {
+    this.router.navigate(['/app/nuevo-ingreso']);
   }
 }
