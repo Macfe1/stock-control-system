@@ -1,0 +1,361 @@
+{
+  "resource_version": 53,
+  "metadata": {
+    "version": 3,
+    "sources": [
+      {
+        "name": "default",
+        "kind": "postgres",
+        "tables": [
+          {
+            "table": {
+              "name": "inventory",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "inventory_product",
+                "using": {
+                  "foreign_key_constraint_on": "product_id"
+                }
+              },
+              {
+                "name": "inventory_warehouse",
+                "using": {
+                  "foreign_key_constraint_on": "warehouse_id"
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "operator",
+                "permission": {
+                  "columns": [
+                    "quantity",
+                    "created_at",
+                    "updated_at",
+                    "product_id",
+                    "warehouse_id"
+                  ],
+                  "filter": {}
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "products",
+              "schema": "public"
+            },
+            "array_relationships": [
+              {
+                "name": "products_inventories",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "product_id",
+                    "table": {
+                      "name": "inventory",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "products_stock_movements",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "product_id",
+                    "table": {
+                      "name": "stock_movements",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "operator",
+                "permission": {
+                  "columns": [
+                    "active",
+                    "price",
+                    "description",
+                    "name",
+                    "sku",
+                    "unit",
+                    "created_at",
+                    "updated_at",
+                    "id"
+                  ],
+                  "filter": {
+                    "active": {
+                      "_eq": true
+                    }
+                  }
+                }
+              },
+              {
+                "role": "public",
+                "permission": {
+                  "columns": [
+                    "active",
+                    "price",
+                    "description",
+                    "name",
+                    "sku",
+                    "unit",
+                    "created_at",
+                    "updated_at",
+                    "id"
+                  ],
+                  "filter": {
+                    "active": {
+                      "_eq": true
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "stock_movements",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "stock_movements_product",
+                "using": {
+                  "foreign_key_constraint_on": "product_id"
+                }
+              },
+              {
+                "name": "stock_movements_user",
+                "using": {
+                  "foreign_key_constraint_on": "user_id"
+                }
+              },
+              {
+                "name": "stock_movements_warehouse_destination",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "warehouse_destination_id": "id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "warehouses",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "stock_movements_warehouse_origin",
+                "using": {
+                  "foreign_key_constraint_on": "warehouse_origin_id"
+                }
+              }
+            ],
+            "insert_permissions": [
+              {
+                "role": "operator",
+                "permission": {
+                  "check": {},
+                  "columns": [
+                    "active",
+                    "quantity",
+                    "external_reference",
+                    "reason",
+                    "created_at",
+                    "updated_at",
+                    "type",
+                    "id",
+                    "product_id",
+                    "user_id",
+                    "warehouse_destination_id",
+                    "warehouse_origin_id"
+                  ]
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "operator",
+                "permission": {
+                  "columns": [
+                    "active",
+                    "quantity",
+                    "external_reference",
+                    "reason",
+                    "created_at",
+                    "updated_at",
+                    "type",
+                    "id",
+                    "product_id",
+                    "user_id",
+                    "warehouse_destination_id",
+                    "warehouse_origin_id"
+                  ],
+                  "filter": {}
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "users",
+              "schema": "public"
+            },
+            "array_relationships": [
+              {
+                "name": "users_stock_movements",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "user_id",
+                    "table": {
+                      "name": "stock_movements",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "operator",
+                "permission": {
+                  "columns": [
+                    "id",
+                    "email",
+                    "password_hash",
+                    "role",
+                    "active",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "filter": {}
+                }
+              },
+              {
+                "role": "public",
+                "permission": {
+                  "columns": [
+                    "active",
+                    "email",
+                    "password_hash",
+                    "created_at",
+                    "updated_at",
+                    "role",
+                    "id"
+                  ],
+                  "filter": {}
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "warehouses",
+              "schema": "public"
+            },
+            "array_relationships": [
+              {
+                "name": "warehouses_destination_stock_movements",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "warehouse_destination_id",
+                    "table": {
+                      "name": "stock_movements",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "warehouses_inventories",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "warehouse_id",
+                    "table": {
+                      "name": "inventory",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "warehouses_origin_stock_movements",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "warehouse_origin_id",
+                    "table": {
+                      "name": "stock_movements",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "operator",
+                "permission": {
+                  "columns": [
+                    "active",
+                    "address",
+                    "code",
+                    "name",
+                    "created_at",
+                    "updated_at",
+                    "id"
+                  ],
+                  "filter": {
+                    "active": {
+                      "_eq": true
+                    }
+                  }
+                }
+              },
+              {
+                "role": "public",
+                "permission": {
+                  "columns": [
+                    "active",
+                    "address",
+                    "code",
+                    "name",
+                    "created_at",
+                    "updated_at",
+                    "id"
+                  ],
+                  "filter": {
+                    "active": {
+                      "_eq": true
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "configuration": {
+          "connection_info": {
+            "database_url": {
+              "from_env": "HASURA_GRAPHQL_DATABASE_URL"
+            },
+            "isolation_level": "read-committed",
+            "pool_settings": {
+              "connection_lifetime": 600,
+              "idle_timeout": 180,
+              "max_connections": 50,
+              "retries": 1
+            },
+            "use_prepared_statements": true
+          }
+        }
+      }
+    ]
+  }
+}
