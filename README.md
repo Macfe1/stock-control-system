@@ -53,7 +53,7 @@ inventory-backoffice/
 
 ### operator:
 
-- Puede ver Productos, Bodegas e Inventario (en inventario puede escribir y leer).
+- Puede ver Productos, Bodegas e Inventario.
 
 - Puede crear Movimientos (Ingresos/Salidas/Transferencias/Ajustes).
 
